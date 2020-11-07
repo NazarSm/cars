@@ -2,11 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Api\BitrixApi;
+use App\Api\RiaApi;
+use App\Http\Requests\CarsRequest;
 use App\Models\Car;
 use Illuminate\Http\Request;
 
 class CarController extends Controller
 {
+   public $ria;
+   public $bitrix;
+
+   public function __construct(BitrixApi $bitrixApi, RiaApi $riaApi)
+   {
+       $this->ria = $riaApi;
+       $this->bitrix = $bitrixApi;
+   }
+
     /**
      * Display a listing of the resource.
      *
@@ -14,7 +26,9 @@ class CarController extends Controller
      */
     public function index()
     {
-        //
+        $cars = Car::all();
+
+        return view('cars', compact('cars'));
     }
 
     /**
@@ -24,62 +38,33 @@ class CarController extends Controller
      */
     public function create()
     {
-        //
+        $brands = $this->ria->getBrand();
+
+        return view('editCar', compact('brands'));
+
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(CarsRequest $carsRequest)
     {
-        //
+        $this->bitrix->send($carsRequest->input());
+        (new Car())->create($carsRequest->input());
+
+        return redirect()->route('cars.index')->with('success', 'Data saved');
+
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Car  $car
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Car $car)
-    {
-        //
-    }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Car  $car
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Car $car)
+    public function getModels(Request $request)
     {
-        //
-    }
+        $data = $request->input();
+        $id = $data['id'];
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Car  $car
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Car $car)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Car  $car
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Car $car)
-    {
-        //
+        return $this->ria->getModels($id);
     }
 }

@@ -14,5 +14,9 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('cars');
 });
+
+Route::resource('cars', 'App\Http\Controllers\CarController',
+    ['except' => ['update', 'show', 'edit', 'delete' ]])->names('cars');
+Route::post('get_models', 'App\Http\Controllers\CarController@getModels')->name('get_models');
